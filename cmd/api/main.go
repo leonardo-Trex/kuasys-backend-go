@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 
-	"github.com/jackc/pgx/v5" // O driver que você acabou de instalar
+	"github.com/jackc/pgx/v5"
 
 	"github.com/leonardo-Trex/kuasys-backend-go/internal/db"
 )
@@ -42,13 +42,7 @@ func main() {
 	userService := user.NewService(queries)
 	userHandler := user.NewHandler(userService)
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API Kuasys rodando com arquitetura modular!"))
-	})
+	r := newChi()
 
 	userHandler.RegisterRoutes(r)
 
@@ -59,4 +53,16 @@ func main() {
 	if err != nil {
 		fmt.Printf("Erro ao iniciar o servidor: %v\n", err)
 	}
+}
+
+func newChi() *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("API Kuasys rodando com arquitetura modular!"))
+	})
+
+	return r
 }
