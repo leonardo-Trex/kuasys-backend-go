@@ -2,18 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 
 	"github.com/jackc/pgx/v5" // O driver que você acabou de instalar
 
 	"github.com/leonardo-Trex/kuasys-backend-go/internal/db"
 )
+
+//TODO: Graceful shutdown
+//TODO: Configs management with godotenv
 
 func main() {
 
@@ -36,37 +39,23 @@ func main() {
 
 	queries := db.New(conn)
 
-	r := chi.NewRouter()
+	userService := user.NewService(queries)
+	userHandler := user.NewHandler(userService)
 
+	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Hello World com conexão ao banco de dados ativa!"))
+		w.Write([]byte("API Kuasys rodando com arquitetura modular!"))
 	})
 
-	r.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-		users, err := queries.ListUsers(r.Context())
-		if err != nil {
-			http.Error(w, "Erro ao buscar usuários do banco", http.StatusInternalServerError)
-			return
-		}
-
-		if users == nil {
-			users = []db.User{}
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(users)
-	})
+	userHandler.RegisterRoutes(r)
 
 	port := ":8000"
 
-	err = http.ListenAndServe(port, r)
 	fmt.Printf("Servidor rodando na porta %s...\n", port)
+	err = http.ListenAndServe(port, r)
 	if err != nil {
 		fmt.Printf("Erro ao iniciar o servidor: %v\n", err)
 	}
