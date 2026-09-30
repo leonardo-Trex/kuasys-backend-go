@@ -8,11 +8,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/leonardo-Trex/kuasys-backend-go/internal/db"
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/core/entity/user"
+	db "github.com/leonardo-Trex/kuasys-backend-go/internal/db/sqlc"
 )
 
 //TODO: Graceful shutdown
@@ -21,7 +21,7 @@ import (
 func main() {
 
 	ctx := context.Background()
-	connStr := "postgres://kuasys:kuasys@localhost:5432/kuasysdb?sslmode=disable"
+	connStr := "postgres://kuasys:123@localhost:5432/kuasys_db?sslmode=disable"
 
 	conn, err := pgx.Connect(ctx, connStr)
 	if err != nil {
