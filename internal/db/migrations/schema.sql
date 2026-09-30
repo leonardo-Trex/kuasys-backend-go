@@ -1,5 +1,27 @@
 CREATE TABLE users (
-    id     BIGSERIAL PRIMARY KEY,
+    id     UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    keycloak_id VARCHAR(80) NOT NULL,
     name   TEXT NOT NULL,
-    email  TEXT UNIQUE NOT NULL
+    email  TEXT UNIQUE NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    phone TEXT
+);
+
+CREATE TABLE addresses (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    user_id UUID NOT NULL REFERENCES users(id),
+
+    cep VARCHAR(50) NOT NULL,
+    number TEXT NOT NULL,
+    street TEXT NOT NULL,
+    complement TEXT,
+    neighborhood TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE
 );
