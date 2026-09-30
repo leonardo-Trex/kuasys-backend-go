@@ -6,3 +6,7 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM users
 LIMIT 50;
 
+-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = $1;
+
