@@ -1,0 +1,236 @@
+@startuml Models
+
+' skinparam nodesep 50
+' skinparam ranksep 50
+' skinparam linetype ortho
+
+' ===========================================================
+' ENTIDADES DO DOMÍNIO
+' ===========================================================
+
+' Entidade focada em autenticação e credenciais base.
+' Integra com o provedor de identidade (Keycloak).
+class User {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- keycloakId: string
+- email: string
+- isActive: bool
+}
+
+' Perfil estendido com dados fiscais e cadastrais do cliente.
+' Relação 1:1 com User para separar auth de dados pessoais.
+class UserProfile {
+- id: uuid
+- userId: uuid
+- name: string
+- cpf: string
+- phone: string
+}
+
+' Catálogo de endereços cadastrados na conta do cliente.
+' Utiliza o padrão ViaCEP para preenchimento, mas guarda apenas
+' o necessário para a operação logística.
+class Address {
+- id: uuid
+- userId: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- cep: string
+- logradouro: string
+- numero: string
+- complemento: string
+- bairro: string
+- localidade: string
+- uf: string
+- ddd: string
+' Controle de múltiplos endereços por usuário:
+- isActive: bool
+- isPrincipal: bool
+}
+
+' Snapshot Imutável de Endereço do Pedido.
+' Registra exatamente onde a entrega foi solicitada na data da compra.
+' NÃO possui 'isPrincipal' nem 'isActive', pois histórico de pedido não é reconfigurável.
+class OrderAddress {
+- id: uuid
+- orderId: uuid
+- createdAt: timestamp
+- cep: string
+- logradouro: string
+- numero: string
+- complemento: string
+- bairro: string
+- localidade: string
+- uf: string
+- ddd: string
+}
+
+' Catálogo de Produtos.
+' 'price' usa centavos (inteiro) para evitar erros de ponto flutuante em Go.
+class Product {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- name: string
+- description: string
+- priceInCents: integer
+- stockQuantity: integer
+- isActive: bool
+}
+
+' Pedido fechado pelo cliente.
+' Guarda os totais consolidados para auditoria sem precisar recalcular itens no futuro.
+class Order {
+- id: uuid
+- userId: uuid
+- promoCodeId: uuid
+- status: OrderStatus
+- createdAt: timestamp
+- updatedAt: timestamp
+- subtotalInCents: integer
+- freteInCents: integer
+- discountInCents: integer
+- totalInCents: integer
+}
+
+' Item que compõe o pedido.
+' Possui 'productId' para rastreabilidade/estoque, mas replica 'productName' 
+' e 'unitPriceInCents' para garantir que alterações futuras no catálogo não afetem o pedido passado.
+class OrderItem {
+- id: uuid
+- orderId: uuid
+- productId: uuid
+- productName: string
+- unitPriceInCents: integer
+- quantity: integer
+- totalInCents: integer
+}
+
+' Cupons promocionais com regras de uso e expiração.
+class PromoCode {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- code: string
+- expirationDate: timestamp
+- isActive: bool
+- maxUses: integer
+- usesCount: integer
+- perUserLimit: bool
+- type: PromoCodeType
+' Se PERCENTAGE, guarda a taxa (ex: 10 para 10%). Se FIXED_AMOUNT, centavos.
+- value: integer
+}
+
+' Entidade Pai de Pagamento (Base comum para todos os meios).
+' Unifica estado, valores e identificadores externos para conciliação.
+class Payment {
+- id: uuid
+- orderId: uuid
+- gatewayTransactionId: string
+- status: PaymentStatus
+- method: PaymentMethod
+- amountInCents: integer
+- paidAt: timestamp
+- createdAt: timestamp
+- updatedAt: timestamp
+}
+
+' Detalhes específicos de Pix (Assíncrono com expiração).
+' O status e confirmação de pagamento residem no pai (Payment).
+class PaymentPix {
+- paymentId: uuid
+- qrCode: string
+- emvKey: string
+- expiresAt: timestamp
+}
+
+' Detalhes específicos de Boleto Bancário (Assíncrono com compensação).
+class PaymentBoleto {
+- paymentId: uuid
+- linhaDigitavel: string
+- codigoDeBarras: string
+- pdfUrl: string
+- dueDate: date
+}
+
+' Detalhes específicos de Cartão de Crédito.
+' Atende aos princípios do PCI-DSS: nunca salva CVV nem número completo.
+class PaymentCreditCard {
+- paymentId: uuid
+- brand: string
+- lastFourDigits: string
+- installments: integer
+}
+
+' ===========================================================
+' ENUMS
+' ===========================================================
+
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PromoCodeType {
+  FIXED_AMOUNT
+  PERCENTAGE
+  FREE_SHIPPING
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  DECLINED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  PIX
+  BOLETO
+  CREDIT_CARD
+}
+
+' ===========================================================
+' RELACIONAMENTOS (CARDINALIDADES E DEPENDÊNCIAS)
+' ===========================================================
+
+' Um usuário tem exatamente um perfil de dados pessoais
+User "1" -- "1" UserProfile
+
+' Um usuário pode cadastrar múltiplos endereços em sua conta
+User "1" -- "0..*" Address
+
+' O pedido é o agregado raiz: depende do cliente e possui seus itens
+User "1" <-- "0..*" Order
+Order "1" *-- "1..*" OrderItem
+Product "1" <-- "0..*" OrderItem
+
+' Endereço imutável associado estritamente ao pedido realizado
+Order "1" *-- "1" OrderAddress
+
+' Cupons associados de forma opcional
+PromoCode "0..1" <-- "0..*" Order
+
+' Ciclo de vida do pagamento
+Order "1" *-- "1" Payment
+
+' Especializações de pagamento em Go/SQL:
+' Chave primária compartilhada (paymentId referencia Payment.id)
+Payment "1" *-- "0..1" PaymentPix
+Payment "1" *-- "0..1" PaymentBoleto
+Payment "1" *-- "0..1" PaymentCreditCard
+
+Payment -- PaymentStatus
+Payment -- PaymentMethod
+PromoCode -- PromoCodeType
+Order -- OrderStatus
+
+@enduml
