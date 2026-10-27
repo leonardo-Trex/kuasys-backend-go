@@ -17,6 +17,8 @@ class User {
 - keycloakId: string
 - email: string
 - isActive: bool
+' Controle de concorrencia
+- version: integer
 }
 
 ' Perfil estendido com dados fiscais e cadastrais do cliente.
@@ -27,6 +29,8 @@ class UserProfile {
 - name: string
 - cpf: string
 - phone: string
+' Controle de concorrencia
+- version: integer
 }
 
 ' Catálogo de endereços cadastrados na conta do cliente.
@@ -48,6 +52,8 @@ class Address {
 ' Controle de múltiplos endereços por usuário:
 - isActive: bool
 - isPrincipal: bool
+' Controle de concorrencia
+- version: integer
 }
 
 ' Snapshot Imutável de Endereço do Pedido.
@@ -65,6 +71,8 @@ class OrderAddress {
 - localidade: string
 - uf: string
 - ddd: string
+' Controle de concorrencia
+- version: integer
 }
 
 ' Catálogo de Produtos.
@@ -78,6 +86,8 @@ class Product {
 - priceInCents: integer
 - stockQuantity: integer
 - isActive: bool
+' Controle de concorrencia
+- version: integer
 }
 
 ' Pedido fechado pelo cliente.
@@ -93,6 +103,8 @@ class Order {
 - freteInCents: integer
 - discountInCents: integer
 - totalInCents: integer
+' Controle de concorrencia
+- version: integer
 }
 
 ' Item que compõe o pedido.
@@ -106,6 +118,8 @@ class OrderItem {
 - unitPriceInCents: integer
 - quantity: integer
 - totalInCents: integer
+' Controle de concorrencia
+- version: integer
 }
 
 ' Cupons promocionais com regras de uso e expiração.
@@ -122,6 +136,8 @@ class PromoCode {
 - type: PromoCodeType
 ' Se PERCENTAGE, guarda a taxa (ex: 10 para 10%). Se FIXED_AMOUNT, centavos.
 - value: integer
+' Controle de concorrencia
+- version: integer
 }
 
 ' Entidade Pai de Pagamento (Base comum para todos os meios).
@@ -136,6 +152,8 @@ class Payment {
 - paidAt: timestamp
 - createdAt: timestamp
 - updatedAt: timestamp
+' Controle de concorrencia
+- version: integer
 }
 
 ' Detalhes específicos de Pix (Assíncrono com expiração).
@@ -145,6 +163,8 @@ class PaymentPix {
 - qrCode: string
 - emvKey: string
 - expiresAt: timestamp
+' Controle de concorrencia
+- version: integer
 }
 
 ' Detalhes específicos de Boleto Bancário (Assíncrono com compensação).
@@ -154,6 +174,8 @@ class PaymentBoleto {
 - codigoDeBarras: string
 - pdfUrl: string
 - dueDate: date
+' Controle de concorrencia
+- version: integer
 }
 
 ' Detalhes específicos de Cartão de Crédito.
@@ -163,6 +185,8 @@ class PaymentCreditCard {
 - brand: string
 - lastFourDigits: string
 - installments: integer
+' Controle de concorrencia
+- version: integer
 }
 
 ' ===========================================================
