@@ -12,7 +12,7 @@ vet: fmt
 run: sqlc-gen
 	@go run ./cmd/api/main.go
 
-build: vet
+build: sqlc-gen vet
 	@go build -o api ./cmd/api/main.go
 
 
