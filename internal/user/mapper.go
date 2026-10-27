@@ -6,6 +6,9 @@ import (
 	db "github.com/leonardo-Trex/kuasys-backend-go/internal/database/sqlc"
 )
 
+// Os dados do usuário são divididos entre duas tabelas para permitir dois tipos de
+// cadastro. Essa função pega o resultado da consulta com todos os dados e mapeia
+// para o DTO.
 func toResponse(e db.FindUserWithProfileByIDRow) (UserResponse, error) {
 	response := UserResponse{
 		uuid.UUID(e.ID),
