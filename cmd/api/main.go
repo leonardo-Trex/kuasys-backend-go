@@ -1,5 +1,8 @@
 package main
 
+//TODO Graceful shutdown
+//TODO Configs management with godotenv
+//TODO Aprender a usar o connection.go
 import (
 	"context"
 	"fmt"
@@ -11,12 +14,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/leonardo-Trex/kuasys-backend-go/internal/core/entity/user"
-	db "github.com/leonardo-Trex/kuasys-backend-go/internal/db/sqlc"
+	db "github.com/leonardo-Trex/kuasys-backend-go/internal/database/sqlc"
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 )
-
-//TODO: Graceful shutdown
-//TODO: Configs management with godotenv
 
 func main() {
 

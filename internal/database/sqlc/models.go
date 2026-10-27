@@ -26,13 +26,23 @@ type Address struct {
 	IsPrimary    bool        `json:"is_primary"`
 }
 
+type Order struct {
+	ID     uuid.UUID   `json:"id"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
 type User struct {
-	ID         uuid.UUID   `json:"id"`
-	CreatedAt  time.Time   `json:"created_at"`
-	UpdatedAt  time.Time   `json:"updated_at"`
-	KeycloakID string      `json:"keycloak_id"`
-	Name       string      `json:"name"`
-	Email      string      `json:"email"`
-	IsActive   bool        `json:"is_active"`
-	Phone      pgtype.Text `json:"phone"`
+	ID         uuid.UUID `json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	KeycloakID string    `json:"keycloak_id"`
+	Email      string    `json:"email"`
+	IsActive   bool      `json:"is_active"`
+}
+
+type UserProfile struct {
+	UserID uuid.UUID `json:"user_id"`
+	Name   string    `json:"name"`
+	Cpf    string    `json:"cpf"`
+	Phone  string    `json:"phone"`
 }
