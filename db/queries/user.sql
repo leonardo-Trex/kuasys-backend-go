@@ -12,11 +12,6 @@ FROM users
 WHERE id = $1 
 LIMIT 1;
 
--- x name: FindAll :many
-SELECT id, created_at, updated_at, keycloak_id, name, email, is_active, phone
-FROM users
-LIMIT 50;
-
 -- TODO paginação
 -- name: FindAll :many
 SELECT *
