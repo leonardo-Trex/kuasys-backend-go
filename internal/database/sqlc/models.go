@@ -24,11 +24,7 @@ type Address struct {
 	City         string      `json:"city"`
 	State        string      `json:"state"`
 	IsPrimary    bool        `json:"is_primary"`
-}
-
-type Order struct {
-	ID     uuid.UUID   `json:"id"`
-	UserID pgtype.UUID `json:"user_id"`
+	IsDeleted    bool        `json:"is_deleted"`
 }
 
 type User struct {
@@ -37,7 +33,7 @@ type User struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	KeycloakID string    `json:"keycloak_id"`
 	Email      string    `json:"email"`
-	IsActive   bool      `json:"is_active"`
+	IsDeleted  bool      `json:"is_deleted"`
 }
 
 type UserProfile struct {

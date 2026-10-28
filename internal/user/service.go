@@ -57,3 +57,13 @@ func (s *Service) DeleteByID(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+// TODO
+// func (s *Service) CreateCompleteUser(ctx context.Context, dto CreateUserRequest) error {
+// 	err := s.repo.CreateUser(ctx, dto)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }

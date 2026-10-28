@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	FindAddressWithUserDetailsByID(ctx context.Context, id uuid.UUID) (FindAddressWithUserDetailsByIDRow, error)
 	// TODO paginação
 	FindAll(ctx context.Context) ([]FindAllRow, error)
 	FindUserWithProfileByID(ctx context.Context, id uuid.UUID) (FindUserWithProfileByIDRow, error)

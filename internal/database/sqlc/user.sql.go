@@ -13,7 +13,8 @@ import (
 )
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users
+UPDATE  users
+SET is_deleted = TRUE
 WHERE id = $1
 `
 
@@ -23,10 +24,11 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const findAll = `-- name: FindAll :many
-SELECT id, created_at, updated_at, keycloak_id, email, is_active, user_id, name, cpf, phone
+SELECT id, created_at, updated_at, keycloak_id, email, is_deleted, user_id, name, cpf, phone
 FROM users AS u
 INNER JOIN user_profile AS up
     ON u.id = up.user_id
+    AND u.is_deleted = false
 LIMIT 50
 `
 
@@ -36,7 +38,7 @@ type FindAllRow struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	KeycloakID string    `json:"keycloak_id"`
 	Email      string    `json:"email"`
-	IsActive   bool      `json:"is_active"`
+	IsDeleted  bool      `json:"is_deleted"`
 	UserID     uuid.UUID `json:"user_id"`
 	Name       string    `json:"name"`
 	Cpf        string    `json:"cpf"`
@@ -59,7 +61,7 @@ func (q *Queries) FindAll(ctx context.Context) ([]FindAllRow, error) {
 			&i.UpdatedAt,
 			&i.KeycloakID,
 			&i.Email,
-			&i.IsActive,
+			&i.IsDeleted,
 			&i.UserID,
 			&i.Name,
 			&i.Cpf,
@@ -76,11 +78,12 @@ func (q *Queries) FindAll(ctx context.Context) ([]FindAllRow, error) {
 }
 
 const findUserWithProfileByID = `-- name: FindUserWithProfileByID :one
-SELECT id, created_at, updated_at, keycloak_id, email, is_active, user_id, name, cpf, phone
+SELECT id, created_at, updated_at, keycloak_id, email, is_deleted, user_id, name, cpf, phone
 FROM users AS u
 INNER JOIN user_profile AS up
     ON u.id = up.user_id
-WHERE id = $1 
+WHERE id = $1
+    AND u.is_deleted = false
 LIMIT 1
 `
 
@@ -90,7 +93,7 @@ type FindUserWithProfileByIDRow struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	KeycloakID string    `json:"keycloak_id"`
 	Email      string    `json:"email"`
-	IsActive   bool      `json:"is_active"`
+	IsDeleted  bool      `json:"is_deleted"`
 	UserID     uuid.UUID `json:"user_id"`
 	Name       string    `json:"name"`
 	Cpf        string    `json:"cpf"`
@@ -106,7 +109,7 @@ func (q *Queries) FindUserWithProfileByID(ctx context.Context, id uuid.UUID) (Fi
 		&i.UpdatedAt,
 		&i.KeycloakID,
 		&i.Email,
-		&i.IsActive,
+		&i.IsDeleted,
 		&i.UserID,
 		&i.Name,
 		&i.Cpf,

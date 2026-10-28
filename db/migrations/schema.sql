@@ -4,7 +4,7 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     keycloak_id VARCHAR(80) NOT NULL,
     email  TEXT UNIQUE NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Com essa configuração eu consigo trabalhar com o cadastro simples e completo
@@ -12,7 +12,7 @@ CREATE TABLE users (
 CREATE TABLE user_profile (
     user_id UUID PRIMARY KEY REFERENCES users(id),
     name TEXT NOT NULL,
-    cpf TEXT NOT NULL UNIQUE,
+    cpf VARCHAR(11) NOT NULL UNIQUE, -- TEXT? tu é doido fi
     phone TEXT NOT NULL
 );
 
@@ -20,7 +20,7 @@ CREATE TABLE addresses (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     user_id UUID NOT NULL REFERENCES user_profile(user_id),
 
     cep VARCHAR(50) NOT NULL,
@@ -30,10 +30,7 @@ CREATE TABLE addresses (
     neighborhood TEXT NOT NULL,
     city TEXT NOT NULL,
     state TEXT NOT NULL,
-    is_primary BOOLEAN NOT NULL DEFAULT FALSE
-);
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE, -- isso permite varios registros como primarios
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 
-CREATE TABLE orders (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id)
 );

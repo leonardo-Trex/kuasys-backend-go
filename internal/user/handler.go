@@ -26,9 +26,12 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 
 func (h *Handler) FindByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	// Se o banco não tem registro user talvez possa ser nil? ou o erro tráz essa informação?
 	user, err := h.service.FindByID(r.Context(), uuid.MustParse(id)) // TODO tratar o panic...
+	//TODO isso tá estranho
 	if err != nil {
-		http.Error(w, "Erro ao buscar no banco", http.StatusInternalServerError)
+		// TODO retorna o json do erro RFC 7807
+		http.Error(w, "Erro ao buscar no banco", http.StatusNotFound)
 		return
 	}
 
@@ -40,6 +43,7 @@ func (h *Handler) FindByID(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) FindAll(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.FindAll(r.Context())
 	if err != nil {
+		// TODO retorna o json do erro RFC 7807
 		http.Error(w, "Erro ao buscar usuários do banco", http.StatusInternalServerError)
 		return
 	}
@@ -59,6 +63,7 @@ func (h *Handler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.DeleteByID(r.Context(), parsedID); err != nil {
+		// TODO retorna o json do erro RFC 7807
 		http.Error(w, "Erro ao deletar usuário", http.StatusInternalServerError)
 		return
 	}

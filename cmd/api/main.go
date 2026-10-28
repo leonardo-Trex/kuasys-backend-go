@@ -14,6 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/address"
 	db "github.com/leonardo-Trex/kuasys-backend-go/internal/database/sqlc"
 	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 )
@@ -37,14 +38,18 @@ func main() {
 	}
 	fmt.Println("Conexão com o PostgreSQL realizada com sucesso!")
 
-	queries := db.New(conn)
+	repo := db.New(conn)
 
-	userService := user.NewService(queries)
+	userService := user.NewService(repo)
 	userHandler := user.NewHandler(userService)
+
+	addressService := address.NewService(repo)
+	addressHandler := address.NewHandler(addressService)
 
 	r := newChi()
 
 	userHandler.RegisterRoutes(r)
+	addressHandler.RegisterRoutes(r)
 
 	port := ":8000"
 
