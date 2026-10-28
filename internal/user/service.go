@@ -49,11 +49,11 @@ func (s *Service) FindAll(ctx context.Context) ([]UserResponse, error) {
 // 	return users, nil
 // }
 
-// func (s *Service) DeleteByID(ctx context.Context, id uuid.UUID) error {
-// 	err := s.repo.DeleteUser(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
+func (s *Service) DeleteByID(ctx context.Context, id uuid.UUID) error {
+	err := s.repo.DeleteUser(ctx, id)
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}

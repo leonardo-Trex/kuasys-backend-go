@@ -21,7 +21,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/users/{id}", h.FindByID)
 	// r.Post("/users", h.Create)
 	// r.Put("/users", h.Update)
-	// r.Delete("/users/{id}", h.DeleteByID)
+	r.Delete("/users/{id}", h.DeleteByID)
 }
 
 func (h *Handler) FindByID(w http.ResponseWriter, r *http.Request) {
@@ -48,19 +48,20 @@ func (h *Handler) FindAll(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
-// func (h *Handler) DeleteByID(w http.ResponseWriter, r *http.Request) {
-// 	id := chi.URLParam(r, "id")
+// TODO soft delete
+func (h *Handler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
 
-// 	parsedID, err := uuid.Parse(id)
-// 	if err != nil {
-// 		http.Error(w, "ID inválido", http.StatusBadRequest)
-// 		return
-// 	}
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
 
-// 	if err := h.service.DeleteByID(r.Context(), parsedID); err != nil {
-// 		http.Error(w, "Erro ao deletar usuário", http.StatusInternalServerError)
-// 		return
-// 	}
+	if err := h.service.DeleteByID(r.Context(), parsedID); err != nil {
+		http.Error(w, "Erro ao deletar usuário", http.StatusInternalServerError)
+		return
+	}
 
-// 	w.WriteHeader(http.StatusNoContent)
-// }
+	w.WriteHeader(http.StatusNoContent)
+}

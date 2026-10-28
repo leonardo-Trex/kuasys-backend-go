@@ -12,6 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
+	return err
+}
+
 const findAll = `-- name: FindAll :many
 SELECT id, created_at, updated_at, keycloak_id, email, is_active, user_id, name, cpf, phone
 FROM users AS u

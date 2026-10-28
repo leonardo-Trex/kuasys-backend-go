@@ -20,7 +20,7 @@ INNER JOIN user_profile AS up
     ON u.id = up.user_id
 LIMIT 50;
 
--- x name: DeleteUser :exec
+-- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;
 
