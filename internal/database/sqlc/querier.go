@@ -11,6 +11,8 @@ import (
 )
 
 type Querier interface {
+	// TODO paginação
+	FindAll(ctx context.Context) ([]FindAllRow, error)
 	FindUserWithProfileByID(ctx context.Context, id uuid.UUID) (FindUserWithProfileByIDRow, error)
 }
 

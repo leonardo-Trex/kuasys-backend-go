@@ -23,20 +23,28 @@ func (s *Service) FindByID(ctx context.Context, id uuid.UUID) (UserResponse, err
 	}
 
 	//TODO tratar o erro, mas não há valores null
-	response, _ := toResponse(user)
+	response, _ := byIDtoResponse(user)
 	return response, nil
 }
 
-// func (s *Service) FindAll(ctx context.Context) ([]db.User, error) {
-// 	users, err := s.repo.FindAll(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (s *Service) FindAll(ctx context.Context) ([]UserResponse, error) {
+	users, err := s.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// TODO entender isso
-// 	if users == nil {
-// 		return []db.User{}, nil
-// 	}
+	if users == nil {
+		return []UserResponse{}, nil
+	}
+
+	var response []UserResponse
+	for _, user := range users {
+		dto, _ := findAlltoResponse(user)
+		response = append(response, dto)
+	}
+
+	return response, nil
+}
 
 // 	return users, nil
 // }

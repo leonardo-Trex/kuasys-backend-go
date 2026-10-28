@@ -9,7 +9,26 @@ import (
 // Os dados do usuário são divididos entre duas tabelas para permitir dois tipos de
 // cadastro. Essa função pega o resultado da consulta com todos os dados e mapeia
 // para o DTO.
-func toResponse(e db.FindUserWithProfileByIDRow) (UserResponse, error) {
+func byIDtoResponse(e db.FindUserWithProfileByIDRow) (UserResponse, error) {
+	response := UserResponse{
+		uuid.UUID(e.ID),
+		e.CreatedAt,
+		e.UpdatedAt,
+		e.KeycloakID,
+		e.Email,
+		e.IsActive,
+		e.Name,
+		e.Cpf,
+		e.Phone,
+	}
+
+	return response, nil
+}
+
+// O sqlc cria um tipo para as duas consultas, isso parece problemático.
+// Esses dois tipos são na prática os mesmos
+// esse erro tá meio perdido.
+func findAlltoResponse(e db.FindAllRow) (UserResponse, error) {
 	response := UserResponse{
 		uuid.UUID(e.ID),
 		e.CreatedAt,

@@ -17,6 +17,14 @@ SELECT id, created_at, updated_at, keycloak_id, name, email, is_active, phone
 FROM users
 LIMIT 50;
 
+-- TODO paginação
+-- name: FindAll :many
+SELECT *
+FROM users AS u
+INNER JOIN user_profile AS up
+    ON u.id = up.user_id
+LIMIT 50;
+
 -- x name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;

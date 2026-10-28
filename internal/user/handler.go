@@ -17,7 +17,7 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(r chi.Router) {
-	// r.Get("/users", h.FindAll)
+	r.Get("/users", h.FindAll)
 	r.Get("/users/{id}", h.FindByID)
 	// r.Post("/users", h.Create)
 	// r.Put("/users", h.Update)
@@ -37,16 +37,16 @@ func (h *Handler) FindByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// func (h *Handler) FindAll(w http.ResponseWriter, r *http.Request) {
-// 	users, err := h.service.FindAll(r.Context())
-// 	if err != nil {
-// 		http.Error(w, "Erro ao buscar usuários do banco", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(users)
-// }
+func (h *Handler) FindAll(w http.ResponseWriter, r *http.Request) {
+	users, err := h.service.FindAll(r.Context())
+	if err != nil {
+		http.Error(w, "Erro ao buscar usuários do banco", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
+}
 
 // func (h *Handler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 // 	id := chi.URLParam(r, "id")

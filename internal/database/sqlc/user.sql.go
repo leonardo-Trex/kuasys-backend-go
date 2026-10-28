@@ -12,6 +12,59 @@ import (
 	"github.com/google/uuid"
 )
 
+const findAll = `-- name: FindAll :many
+SELECT id, created_at, updated_at, keycloak_id, email, is_active, user_id, name, cpf, phone
+FROM users AS u
+INNER JOIN user_profile AS up
+    ON u.id = up.user_id
+LIMIT 50
+`
+
+type FindAllRow struct {
+	ID         uuid.UUID `json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	KeycloakID string    `json:"keycloak_id"`
+	Email      string    `json:"email"`
+	IsActive   bool      `json:"is_active"`
+	UserID     uuid.UUID `json:"user_id"`
+	Name       string    `json:"name"`
+	Cpf        string    `json:"cpf"`
+	Phone      string    `json:"phone"`
+}
+
+// TODO paginação
+func (q *Queries) FindAll(ctx context.Context) ([]FindAllRow, error) {
+	rows, err := q.db.Query(ctx, findAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllRow
+	for rows.Next() {
+		var i FindAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.KeycloakID,
+			&i.Email,
+			&i.IsActive,
+			&i.UserID,
+			&i.Name,
+			&i.Cpf,
+			&i.Phone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findUserWithProfileByID = `-- name: FindUserWithProfileByID :one
 SELECT id, created_at, updated_at, keycloak_id, email, is_active, user_id, name, cpf, phone
 FROM users AS u
