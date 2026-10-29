@@ -1,0 +1,200 @@
+@startuml Models
+
+' skinparam nodesep 60
+' skinparam ranksep 60
+' skinparam linetype ortho
+
+' ===========================================================
+' CATÁLOGO EDITORIAL (Obras, Edições e Autoria)
+' ===========================================================
+
+' Obra intelectual/conceitual (ex: "Watchmen", "Sandman").
+' Desacoplada do item físico que está na prateleira.
+class Quadrinho {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- titulo: string
+- sinopse: string
+- genero: GeneroQuadrinho
+}
+
+' Agrupamento opcional de publicações (ex: "Grandes Clássicos DC", "Saga do Batman").
+' O status 'completa' é derivado pela presença de 'dataFimPublicacao'.
+class Colecao {
+- id: uuid
+- editoraId: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- nome: string
+- descricao: string
+- dataInicioPublicacao: date
+- dataFimPublicacao: date
+}
+
+' Objeto físico bibliográfico real (livro/revista impresso).
+' Não herda de Produto: compõe com Product via relação 1:1.
+class Edicao {
+- id: uuid
+- quadrinhoId: uuid
+- colecaoId: uuid
+- editoraId: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- numero: integer
+- dataPublicacao: date
+- isbn: string
+- tipoCapa: TipoCapa
+- tiragem: integer
+- dimensoes: string
+- numeroPaginas: integer
+}
+
+' Artistas e criadores do meio editorial.
+class Quadrinista {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- nome: string
+- nacionalidade: string
+- dataNascimento: date
+}
+
+' Tabela associativa que documenta os créditos por edição física.
+' Permite registrar tanto quem escreveu a obra original 
+' quanto quem traduziu ou fez a capa variante desta edição específica.
+class CreditoEdicao {
+- id: uuid
+- edicaoId: uuid
+- quadrinistaId: uuid
+- papel: PapelCriativo
+}
+
+' ===========================================================
+' E-COMMERCE E FORNECEDOR
+' ===========================================================
+
+' Atua como Fornecedora oficial dos títulos e origem das remessas.
+class Editora {
+- id: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- razaoSocial: string
+- nomeFantasia: string
+- cnpj: string
+- emailContato: string
+- telefoneContato: string
+- isActive: bool
+}
+
+' Entidade comercial padrão para o e-commerce (conectada aos pedidos).
+' Composição 1:1 com Edicao: o checkout enxerga apenas 'Product'.
+class Product {
+- id: uuid
+- edicaoId: uuid
+- createdAt: timestamp
+- updatedAt: timestamp
+- sku: string
+- priceInCents: integer
+- isActive: bool
+}
+
+' ===========================================================
+' ESTOQUE E LIVRO-RAZÃO (LEDGER) DE MOVIMENTAÇÕES
+' ===========================================================
+
+' Entrada formal de mercadorias no centro de distribuição enviadas pela Editora.
+class OrdemEntradaEstoque {
+- id: uuid
+- editoraId: uuid
+- createdAt: timestamp
+- numeroNotaFiscal: string
+- dataRecebimento: timestamp
+- valorTotalNfInCents: integer
+}
+
+' Livro-razão (ledger) imutável de estoque.
+' O estoque atual do produto é a soma acumulada de 'quantidade' (positiva ou negativa).
+' Garante auditoria total: documenta de qual fornecedor veio ou para qual cliente foi.
+class MovimentacaoEstoque {
+- id: uuid
+- productId: uuid
+- ordemEntradaId: uuid
+- orderId: uuid
+- createdAt: timestamp
+- tipo: TipoMovimentacao
+- quantidade: integer
+- custoAquisicaoUnitarioInCents: integer
+- motivoAjuste: string
+}
+
+' ===========================================================
+' ENUMS
+' ===========================================================
+
+enum GeneroQuadrinho {
+  ACAO
+  AVENTURA
+  FICCAO_CIENTIFICA
+  FANTASIA
+  TERROR
+  SUPER_HEROIS
+  DRAMA
+}
+
+enum TipoCapa {
+  BROCHURA
+  CAPA_DURA
+  CANOA
+  LUXO
+}
+
+enum PapelCriativo {
+  ROTEIRISTA
+  DESENHISTA
+  ARTE_FINALISTA
+  COLORISTA
+  LETRISTA
+  CAPISTA
+  TRADUTOR
+  EDITOR
+}
+
+enum TipoMovimentacao {
+  ENTRADA_FORNECEDOR
+  SAIDA_VENDA
+  DEVOLUCAO_CLIENTE
+  PERDA_AVARIA
+  AJUSTE_INVENTARIO
+}
+
+' ===========================================================
+' RELACIONAMENTOS (CARDINALIDADES E CHAVES ESTRANGEIRAS)
+' ===========================================================
+
+' Vínculo Editorial
+Quadrinho "1" <-- "1..*" Edicao : agrupa
+Editora "1" <-- "0..*" Edicao : publica
+Editora "1" <-- "0..*" Colecao : gerencia
+Colecao "0..1" <-- "0..*" Edicao : categoriza
+
+' Créditos N:M entre Artistas e Edições
+Edicao "1" *-- "1..*" CreditoEdicao
+Quadrinista "1" <-- "0..*" CreditoEdicao
+
+' Conexão com o E-commerce (Composição 1:1 em vez de herança)
+Edicao "1" <-- "1" Product : comercializa
+
+' Gestão de Fornecimento e Estoque
+Editora "1" <-- "0..*" OrdemEntradaEstoque : fornece
+OrdemEntradaEstoque "0..1" <-- "0..*" MovimentacaoEstoque : origina
+
+Product "1" *-- "0..*" MovimentacaoEstoque : movimenta
+
+' Tipos e Domínios
+Quadrinho -- GeneroQuadrinho
+Edicao -- TipoCapa
+CreditoEdicao -- PapelCriativo
+MovimentacaoEstoque -- TipoMovimentacao
+
+@enduml

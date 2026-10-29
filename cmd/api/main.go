@@ -1,5 +1,8 @@
 package main
 
+//TODO Graceful shutdown
+//TODO Configs management with godotenv
+//TODO Aprender a usar o connection.go
 import (
 	"context"
 	"fmt"
@@ -11,12 +14,10 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/leonardo-Trex/kuasys-backend-go/internal/core/entity/user"
-	db "github.com/leonardo-Trex/kuasys-backend-go/internal/db/sqlc"
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/address"
+	db "github.com/leonardo-Trex/kuasys-backend-go/internal/database/sqlc"
+	"github.com/leonardo-Trex/kuasys-backend-go/internal/user"
 )
-
-//TODO: Graceful shutdown
-//TODO: Configs management with godotenv
 
 func main() {
 
@@ -37,14 +38,18 @@ func main() {
 	}
 	fmt.Println("Conexão com o PostgreSQL realizada com sucesso!")
 
-	queries := db.New(conn)
+	repo := db.New(conn)
 
-	userService := user.NewService(queries)
+	userService := user.NewService(repo)
 	userHandler := user.NewHandler(userService)
+
+	addressService := address.NewService(repo)
+	addressHandler := address.NewHandler(addressService)
 
 	r := newChi()
 
 	userHandler.RegisterRoutes(r)
+	addressHandler.RegisterRoutes(r)
 
 	port := ":8000"
 
