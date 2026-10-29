@@ -13,6 +13,80 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAddress = `-- name: CreateAddress :one
+INSERT INTO addresses (
+    id,
+    user_id,
+    cep,
+    number,
+    street,
+    complement,
+    neighborhood,
+    city,
+    state,
+    is_primary
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+)
+RETURNING id, created_at, updated_at, user_id, cep, number, street, complement, neighborhood, city, state, is_primary, is_deleted
+`
+
+type CreateAddressParams struct {
+	ID           uuid.UUID   `json:"id"`
+	UserID       uuid.UUID   `json:"user_id"`
+	Cep          string      `json:"cep"`
+	Number       string      `json:"number"`
+	Street       string      `json:"street"`
+	Complement   pgtype.Text `json:"complement"`
+	Neighborhood string      `json:"neighborhood"`
+	City         string      `json:"city"`
+	State        string      `json:"state"`
+	IsPrimary    bool        `json:"is_primary"`
+}
+
+func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error) {
+	row := q.db.QueryRow(ctx, createAddress,
+		arg.ID,
+		arg.UserID,
+		arg.Cep,
+		arg.Number,
+		arg.Street,
+		arg.Complement,
+		arg.Neighborhood,
+		arg.City,
+		arg.State,
+		arg.IsPrimary,
+	)
+	var i Address
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.Cep,
+		&i.Number,
+		&i.Street,
+		&i.Complement,
+		&i.Neighborhood,
+		&i.City,
+		&i.State,
+		&i.IsPrimary,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const deleteAddress = `-- name: DeleteAddress :exec
+UPDATE  addresses
+SET is_deleted = TRUE
+WHERE id = $1
+`
+
+func (q *Queries) DeleteAddress(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAddress, id)
+	return err
+}
+
 const findAddressWithUserDetailsByID = `-- name: FindAddressWithUserDetailsByID :one
 SELECT
     a.id,
@@ -80,6 +154,149 @@ func (q *Queries) FindAddressWithUserDetailsByID(ctx context.Context, id uuid.UU
 		&i.UserCpf,
 		&i.UserPhone,
 		&i.UserEmail,
+	)
+	return i, err
+}
+
+const findAllAddressWithUserDetails = `-- name: FindAllAddressWithUserDetails :many
+SELECT
+    a.id,
+    a.user_id,
+    a.cep,
+    a.number,
+    a.street,
+    a.complement,
+    a.neighborhood,
+    a.city,
+    a.state,
+    a.is_primary,
+    a.created_at,
+    a.updated_at,
+    up.name AS user_name,
+    up.cpf AS user_cpf,
+    up.phone AS user_phone,
+    u.email AS user_email
+FROM addresses AS a
+INNER JOIN user_profile AS up
+    ON a.user_id = up.user_id
+INNER JOIN users AS u
+    ON a.user_id = u.id
+WHERE  a.is_deleted = FALSE
+LIMIT 50
+`
+
+type FindAllAddressWithUserDetailsRow struct {
+	ID           uuid.UUID   `json:"id"`
+	UserID       uuid.UUID   `json:"user_id"`
+	Cep          string      `json:"cep"`
+	Number       string      `json:"number"`
+	Street       string      `json:"street"`
+	Complement   pgtype.Text `json:"complement"`
+	Neighborhood string      `json:"neighborhood"`
+	City         string      `json:"city"`
+	State        string      `json:"state"`
+	IsPrimary    bool        `json:"is_primary"`
+	CreatedAt    time.Time   `json:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at"`
+	UserName     string      `json:"user_name"`
+	UserCpf      string      `json:"user_cpf"`
+	UserPhone    string      `json:"user_phone"`
+	UserEmail    string      `json:"user_email"`
+}
+
+// TODO paginação
+func (q *Queries) FindAllAddressWithUserDetails(ctx context.Context) ([]FindAllAddressWithUserDetailsRow, error) {
+	rows, err := q.db.Query(ctx, findAllAddressWithUserDetails)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllAddressWithUserDetailsRow
+	for rows.Next() {
+		var i FindAllAddressWithUserDetailsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Cep,
+			&i.Number,
+			&i.Street,
+			&i.Complement,
+			&i.Neighborhood,
+			&i.City,
+			&i.State,
+			&i.IsPrimary,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserName,
+			&i.UserCpf,
+			&i.UserPhone,
+			&i.UserEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateAddress = `-- name: UpdateAddress :one
+UPDATE addresses
+SET
+    cep = $2,
+    number = $3,
+    street = $4,
+    complement = $5,
+    neighborhood = $6,
+    city = $7,
+    state = $8,
+    is_primary = $9,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND is_deleted = FALSE
+RETURNING id, created_at, updated_at, user_id, cep, number, street, complement, neighborhood, city, state, is_primary, is_deleted
+`
+
+type UpdateAddressParams struct {
+	ID           uuid.UUID   `json:"id"`
+	Cep          string      `json:"cep"`
+	Number       string      `json:"number"`
+	Street       string      `json:"street"`
+	Complement   pgtype.Text `json:"complement"`
+	Neighborhood string      `json:"neighborhood"`
+	City         string      `json:"city"`
+	State        string      `json:"state"`
+	IsPrimary    bool        `json:"is_primary"`
+}
+
+func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) (Address, error) {
+	row := q.db.QueryRow(ctx, updateAddress,
+		arg.ID,
+		arg.Cep,
+		arg.Number,
+		arg.Street,
+		arg.Complement,
+		arg.Neighborhood,
+		arg.City,
+		arg.State,
+		arg.IsPrimary,
+	)
+	var i Address
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.Cep,
+		&i.Number,
+		&i.Street,
+		&i.Complement,
+		&i.Neighborhood,
+		&i.City,
+		&i.State,
+		&i.IsPrimary,
+		&i.IsDeleted,
 	)
 	return i, err
 }

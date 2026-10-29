@@ -1,7 +1,7 @@
 package user
 
 import (
-	"uuid"
+	"github.com/google/uuid"
 
 	db "github.com/leonardo-Trex/kuasys-backend-go/internal/database/sqlc"
 )

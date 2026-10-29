@@ -2,7 +2,8 @@ package user
 
 import (
 	"time"
-	"uuid"
+
+	"github.com/google/uuid"
 )
 
 type UserResponse struct {

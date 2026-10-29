@@ -30,7 +30,11 @@ CREATE TABLE addresses (
     neighborhood TEXT NOT NULL,
     city TEXT NOT NULL,
     state TEXT NOT NULL,
-    is_primary BOOLEAN NOT NULL DEFAULT FALSE, -- isso permite varios registros como primarios
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 
 );
+
+CREATE UNIQUE INDEX idx_addresses_user_primary
+ON addresses (user_id)
+WHERE is_primary = TRUE AND is_deleted = FALSE;

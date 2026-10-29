@@ -11,11 +11,16 @@ import (
 )
 
 type Querier interface {
+	CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error)
+	DeleteAddress(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	FindAddressWithUserDetailsByID(ctx context.Context, id uuid.UUID) (FindAddressWithUserDetailsByIDRow, error)
 	// TODO paginação
 	FindAll(ctx context.Context) ([]FindAllRow, error)
+	// TODO paginação
+	FindAllAddressWithUserDetails(ctx context.Context) ([]FindAllAddressWithUserDetailsRow, error)
 	FindUserWithProfileByID(ctx context.Context, id uuid.UUID) (FindUserWithProfileByIDRow, error)
+	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (Address, error)
 }
 
 var _ Querier = (*Queries)(nil)
